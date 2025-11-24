@@ -5,6 +5,7 @@
 #include "SDTCollectible.h"
 #include "SDTFleeLocation.h"
 #include "SDTPathFollowingComponent.h"
+#include "AI/SoftDesignAIController.h"
 #include "DrawDebugHelpers.h"
 #include "Kismet/KismetMathLibrary.h"
 //#include "UnrealMathUtility.h"
@@ -15,6 +16,39 @@ ASDTAIController::ASDTAIController(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer.SetDefaultSubobjectClass<USDTPathFollowingComponent>(TEXT("PathFollowingComponent")))
 {
     m_PlayerInteractionBehavior = PlayerInteractionBehavior_Collect;
+}
+
+void ASDTAIController::BeginPlay()
+{
+    Super::BeginPlay();
+
+    if (ASoftDesignAIController* aiController = Cast<ASoftDesignAIController>(this))
+    {
+        if (m_currentBrainLogic == EAIBrainMode::BehaviorTree)
+        {
+            aiController->StartBehaviorTree(this);
+        }
+        else
+        {
+            aiController->StopBehaviorTree(this);
+        }
+    }
+}
+
+void ASDTAIController::Tick(float deltaTime)
+{
+    if (m_currentBrainLogic == EAIBrainMode::BehaviorTree) {
+        UpdateBTLogic(deltaTime);
+    }
+    else {
+        Super::Tick(deltaTime);
+    }
+}
+
+void ASDTAIController::UpdateBTLogic(float deltaTime)
+{
+    UpdatePlayerInteraction(deltaTime);
+    return;
 }
 
 void ASDTAIController::GoToBestTarget(float deltaTime)
@@ -135,14 +169,14 @@ void ASDTAIController::OnPlayerInteractionNoLosDone()
     }
 }
 
-void ASDTAIController::MoveToBestFleeLocation()
+FVector3d ASDTAIController::MoveToBestFleeLocation(bool shouldMove)
 {
     float bestLocationScore = 0.f;
     ASDTFleeLocation* bestFleeLocation = nullptr;
 
     ACharacter* playerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
     if (!playerCharacter)
-        return;
+        return FVector3d::Zero();
 
     for (TActorIterator<ASDTFleeLocation> actorIterator(GetWorld(), ASDTFleeLocation::StaticClass()); actorIterator; ++actorIterator)
     {
@@ -170,11 +204,14 @@ void ASDTAIController::MoveToBestFleeLocation()
         }
     }
 
-    if (bestFleeLocation)
+    if (bestFleeLocation && shouldMove)
     {
         MoveToLocation(bestFleeLocation->GetActorLocation(), 0.5f, false, true, false, false, NULL, false);
         OnMoveToTarget();
+        return bestFleeLocation->GetActorLocation();
     }
+    else if (bestFleeLocation) return bestFleeLocation->GetActorLocation();
+    return FVector3d::Zero();
 }
 
 void ASDTAIController::OnMoveToTarget()
@@ -320,7 +357,6 @@ ASDTAIController::PlayerInteractionBehavior ASDTAIController::GetCurrentPlayerIn
 
         if (!HasLoSOnHit(hit))
             return PlayerInteractionBehavior_Collect;
-
         return SDTUtils::IsPlayerPoweredUp(GetWorld()) ? PlayerInteractionBehavior_Flee : PlayerInteractionBehavior_Chase;
     }
     else

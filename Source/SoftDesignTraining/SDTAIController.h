@@ -4,11 +4,19 @@
 
 #include "CoreMinimal.h"
 #include "SDTBaseAIController.h"
+#include "BehaviorTree/BehaviorTree.h"
 #include "SDTAIController.generated.h"
 
 /**
  * 
  */
+UENUM(BlueprintType)
+enum class EAIBrainMode : uint8
+{
+    IfElse          UMETA(DisplayName = "IfElse_Logic"),
+    BehaviorTree 	UMETA(DisplayName = "BT_Logic")
+};
+
 UCLASS(ClassGroup = AI, config = Game)
 class SOFTDESIGNTRAINING_API ASDTAIController : public ASDTBaseAIController
 {
@@ -16,6 +24,10 @@ class SOFTDESIGNTRAINING_API ASDTAIController : public ASDTBaseAIController
 
 public:
     ASDTAIController(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+    virtual void Tick(float deltaTime) override;
+    virtual void BeginPlay() override;
+
+    UBehaviorTree* GetBehaviorTree() const { return m_aiBehaviorTree; }
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
     float m_DetectionCapsuleHalfLength = 500.f;
@@ -44,7 +56,7 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = AI)
     bool Landing = false;
 
-protected:
+    bool CanSeePlayer;
 
     enum PlayerInteractionBehavior
     {
@@ -53,32 +65,41 @@ protected:
         PlayerInteractionBehavior_Flee
     };
 
+protected:
+
+    UPROPERTY(EditAnywhere, category = Behavior)
+    UBehaviorTree* m_aiBehaviorTree;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Decision_Exercises")
+    EAIBrainMode m_currentBrainLogic;
+
     void GetHightestPriorityDetectionHit(const TArray<FHitResult>& hits, FHitResult& outDetectionHit);
     void UpdatePlayerInteractionBehavior(const FHitResult& detectionHit, float deltaTime);
+    void UpdateBTLogic(float deltaTime);
     PlayerInteractionBehavior GetCurrentPlayerInteractionBehavior(const FHitResult& hit);
     bool HasLoSOnHit(const FHitResult& hit);
-    void MoveToRandomCollectible();
-    void MoveToPlayer();
-    void MoveToBestFleeLocation();
-    void PlayerInteractionLoSUpdate();
     void OnPlayerInteractionNoLosDone();
-    void OnMoveToTarget();
 
 public:
     virtual void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result) override;
     void RotateTowards(const FVector& targetLocation);
     void SetActorLocation(const FVector& targetLocation);
     void AIStateInterrupted();
+    void OnMoveToTarget();
+    void MoveToRandomCollectible();
+    FVector3d MoveToBestFleeLocation(bool shouldMove = true);
+    void MoveToPlayer();
+    PlayerInteractionBehavior m_PlayerInteractionBehavior;
 
 private:
     virtual void GoToBestTarget(float deltaTime) override;
-    virtual void UpdatePlayerInteraction(float deltaTime) override;
     virtual void ShowNavigationPath() override;
+    void PlayerInteractionLoSUpdate();
+    virtual void UpdatePlayerInteraction(float deltaTime) override;
 
 
 protected:
     FVector m_JumpTarget;
     FRotator m_ObstacleAvoidanceRotation;
     FTimerHandle m_PlayerInteractionNoLosTimer;
-    PlayerInteractionBehavior m_PlayerInteractionBehavior;
 };

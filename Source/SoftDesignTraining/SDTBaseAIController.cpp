@@ -4,7 +4,7 @@
 #include "SoftDesignTraining.h"
 
 ASDTBaseAIController::ASDTBaseAIController(const FObjectInitializer& ObjectInitializer)
-    :Super(ObjectInitializer)
+    :ASoftDesignAIController(ObjectInitializer)
 {
     PrimaryActorTick.bCanEverTick = true;
     PrimaryActorTick.bStartWithTickEnabled = true;

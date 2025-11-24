@@ -1,0 +1,28 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "BTTask_ShouldChangeTarget.h"
+
+#include "SoftDesignTraining/SoftDesignTraining.h"
+#include "SoftDesignTraining/SDTAIController.h"
+#include "SoftDesignTraining/AI/SoftDesignAIController.h"
+
+#include "BehaviorTree/Blackboard/BlackboardKeyType_Bool.h"
+#include "BehaviorTree/Blackboard/BlackboardKeyType_Vector.h"
+
+
+EBTNodeResult::Type UBTTask_ShouldChangeTarget::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
+{
+    if (ASDTAIController* aiController = Cast<ASDTAIController>(OwnerComp.GetAIOwner()))
+    {
+        if (OwnerComp.GetBlackboardComponent()->GetValue<UBlackboardKeyType_Bool>(aiController->GetTargetSeenKeyID()) && !aiController->InAir)
+        {
+            return EBTNodeResult::Succeeded;
+        }
+        else if (aiController->m_ReachedTarget && !aiController->InAir) {
+            return EBTNodeResult::Succeeded;
+        }
+    }
+    return EBTNodeResult::Failed;
+}
+
