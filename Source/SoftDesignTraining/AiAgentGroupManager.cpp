@@ -29,6 +29,7 @@ void AiAgentGroupManager::Disband()
 {
     for (auto agent : m_registeredAgents) {
         agent->IsInGroup = false;
+        agent->m_ReachedTarget = true;
     }
     m_registeredAgents.Empty();
 }

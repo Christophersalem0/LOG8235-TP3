@@ -203,6 +203,9 @@ void ASDTAIController::MoveToLKP()
     DrawDebugString(GetWorld(), FVector(0.f, 0.f, 10.f), Group->GetLKPFromGroup().GetLKPState() == TargetLKPInfo::ELKPState::LKPState_Invalid ? "invalid" : "valid", GetPawn(), FColor::Red, 5.f, false);
     MoveToLocation(Group->GetLKPFromGroup().GetLKPPos(), 0.5f, false, true, true, false, NULL, false);
     OnMoveToTarget();
+    if ((GetPawn()->GetActorLocation() - Group->GetLKPFromGroup().GetLKPPos()).SizeSquared() < 200) {
+        Group->InvalidLKP();
+    }
 }
 
 void ASDTAIController::PlayerInteractionLoSUpdate()
@@ -333,15 +336,6 @@ void ASDTAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFollow
     Super::OnMoveCompleted(RequestID, Result);
 
     m_ReachedTarget = true;
-
-    if (!IsInGroup) return;
-    AiAgentGroupManager* Group = AiAgentGroupManager::GetInstance();
-    if (!Group)
-        return;
-    if ((GetPawn()->GetActorLocation() - Group->GetLKPFromGroup().GetLKPPos()).SizeSquared() < 25) {
-        Group->InvalidLKP();
-    }
-
 }
 
 void ASDTAIController::ShowNavigationPath()
