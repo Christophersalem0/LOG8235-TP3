@@ -15,11 +15,16 @@ EBTNodeResult::Type UBTTask_ShouldChangeTarget::ExecuteTask(UBehaviorTreeCompone
 {
     if (ASDTAIController* aiController = Cast<ASDTAIController>(OwnerComp.GetAIOwner()))
     {
-        if (OwnerComp.GetBlackboardComponent()->GetValue<UBlackboardKeyType_Bool>(aiController->GetTargetSeenKeyID()) && !aiController->InAir)
+        if (aiController->InAir)
+            return EBTNodeResult::Failed;
+        if (OwnerComp.GetBlackboardComponent()->GetValue<UBlackboardKeyType_Bool>(aiController->GetTargetSeenKeyID()))
         {
             return EBTNodeResult::Succeeded;
         }
-        else if (aiController->m_ReachedTarget && !aiController->InAir) {
+        if (aiController->m_ReachedTarget) {
+            return EBTNodeResult::Succeeded;
+        }
+        if (OwnerComp.GetBlackboardComponent()->GetValue<UBlackboardKeyType_Bool>(aiController->GetIsInGroupKeyID())) {
             return EBTNodeResult::Succeeded;
         }
     }

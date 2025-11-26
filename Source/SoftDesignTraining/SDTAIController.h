@@ -90,6 +90,7 @@ public:
     void MoveToRandomCollectible();
     FVector3d MoveToBestFleeLocation(bool shouldMove = true);
     void MoveToPlayer();
+    void MoveToLKP();
     void DetectPlayer(float deltaTime);
     PlayerInteractionBehavior m_PlayerInteractionBehavior;
 

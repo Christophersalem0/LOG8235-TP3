@@ -11,6 +11,7 @@
 //#include "UnrealMathUtility.h"
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Bool.h"
 #include "AiAgentGroupManager.h"
+#include "AgentsManager.h"
 #include "SDTUtils.h"
 #include "EngineUtils.h"
 
@@ -23,6 +24,8 @@ ASDTAIController::ASDTAIController(const FObjectInitializer& ObjectInitializer)
 void ASDTAIController::BeginPlay()
 {
     Super::BeginPlay();
+    Cast<AAgentsManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AAgentsManager::StaticClass()))->RegisterAIAgent(this);
+
 
     if (ASoftDesignAIController* aiController = Cast<ASoftDesignAIController>(this))
     {
@@ -39,12 +42,14 @@ void ASDTAIController::BeginPlay()
 
 void ASDTAIController::Tick(float deltaTime)
 {
-    if (m_currentBrainLogic == EAIBrainMode::BehaviorTree) {
+    /*if (m_currentBrainLogic == EAIBrainMode::BehaviorTree) {
         UpdateBTLogic(deltaTime);
     }
     else {
         Super::Tick(deltaTime);
-    }
+    }*/
+    if (IsInGroup)
+        DrawDebugSphere(GetWorld(), GetPawn()->GetActorLocation() + FVector(0.f, 0.f, 100.f), 15.0f, 32, FColor::Purple);
 }
 
 void ASDTAIController::UpdateBTLogic(float deltaTime)
@@ -87,12 +92,17 @@ void ASDTAIController::DetectPlayer(float deltaTime) {
     if (PlayerInDetectionCapsule) {
         if (HasLoSOnHit(detectionHit)) {
             CanSeePlayer = true;
-            AiAgentGroupManager::GetInstance()->RegisterAIAgent(this);
-            IsInGroup = true;
+            AiAgentGroupManager* Group = AiAgentGroupManager::GetInstance();
+            if (!IsInGroup) {
+                Group->RegisterAIAgent(this);
+                IsInGroup = true;
+            }
             m_CurrentLKPInfo.SetLKPPos(playerCharacter->GetActorLocation());
             m_CurrentLKPInfo.SetLKPState(TargetLKPInfo::ELKPState::LKPState_ValidByLOS);
             m_CurrentLKPInfo.SetTargetLabel(playerCharacter->GetActorLabel());
             m_CurrentLKPInfo.SetLastUpdatedTimeStamp(UGameplayStatics::GetRealTimeSeconds(GetWorld()));
+            Group->SetGroupLKP(m_CurrentLKPInfo);
+
             // when not in group
             //if (GetWorld()->GetTimerManager().IsTimerActive(m_PlayerInteractionNoLosTimer))
             //{
@@ -105,6 +115,7 @@ void ASDTAIController::DetectPlayer(float deltaTime) {
         } 
     }
     else {
+        CanSeePlayer = false;
         // when not in group
         //if (!GetWorld()->GetTimerManager().IsTimerActive(m_PlayerInteractionNoLosTimer))
         //{
@@ -115,7 +126,10 @@ void ASDTAIController::DetectPlayer(float deltaTime) {
         //}
     }
     m_blackboardComponent->SetValue<UBlackboardKeyType_Bool>(GetTargetSeenKeyID(), CanSeePlayer);
+    m_blackboardComponent->SetValue<UBlackboardKeyType_Bool>(GetIsInGroupKeyID(), IsInGroup);
 }
+
+
 
 void ASDTAIController::GoToBestTarget(float deltaTime)
 {
@@ -177,6 +191,17 @@ void ASDTAIController::MoveToPlayer()
         return;
 
     MoveToActor(playerCharacter, 0.5f, false, true, true, NULL, false);
+    OnMoveToTarget();
+}
+
+void ASDTAIController::MoveToLKP()
+{
+    AiAgentGroupManager* Group = AiAgentGroupManager::GetInstance();
+    if (!Group || Group->GetLKPFromGroup().GetLKPState() == TargetLKPInfo::ELKPState::LKPState_Invalid)
+        return;
+    DrawDebugSphere(GetWorld(), Group->GetLKPFromGroup().GetLKPPos() + FVector(0.f, 0.f, 100.f), 15.0f, 32, FColor::Yellow);
+    DrawDebugString(GetWorld(), FVector(0.f, 0.f, 10.f), Group->GetLKPFromGroup().GetLKPState() == TargetLKPInfo::ELKPState::LKPState_Invalid ? "invalid" : "valid", GetPawn(), FColor::Red, 5.f, false);
+    MoveToLocation(Group->GetLKPFromGroup().GetLKPPos(), 0.5f, false, true, true, false, NULL, false);
     OnMoveToTarget();
 }
 
@@ -308,6 +333,15 @@ void ASDTAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFollow
     Super::OnMoveCompleted(RequestID, Result);
 
     m_ReachedTarget = true;
+
+    if (!IsInGroup) return;
+    AiAgentGroupManager* Group = AiAgentGroupManager::GetInstance();
+    if (!Group)
+        return;
+    if ((GetPawn()->GetActorLocation() - Group->GetLKPFromGroup().GetLKPPos()).SizeSquared() < 25) {
+        Group->InvalidLKP();
+    }
+
 }
 
 void ASDTAIController::ShowNavigationPath()

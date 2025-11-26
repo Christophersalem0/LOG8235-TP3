@@ -14,7 +14,8 @@ EBTNodeResult::Type UBTTask_IsTargetDetected::ExecuteTask(UBehaviorTreeComponent
 {
     if (ASoftDesignAIController* aiController = Cast<ASoftDesignAIController>(OwnerComp.GetAIOwner()))
     {
-        if (OwnerComp.GetBlackboardComponent()->GetValue<UBlackboardKeyType_Bool>(aiController->GetTargetSeenKeyID()))
+        if (OwnerComp.GetBlackboardComponent()->GetValue<UBlackboardKeyType_Bool>(aiController->GetTargetSeenKeyID())
+            || OwnerComp.GetBlackboardComponent()->GetValue<UBlackboardKeyType_Bool>(aiController->GetIsInGroupKeyID()))
         {
             return EBTNodeResult::Succeeded;
         }

@@ -55,6 +55,8 @@ void ASoftDesignAIController::OnPossess(APawn* pawn)
             m_isTargetSeenBBKeyID = m_blackboardComponent->GetKeyID("TargetIsSeen");
             m_nextPatrolDestinationBBKeyID = m_blackboardComponent->GetKeyID("NextPatrolDest");
             m_currentPatrolDestinationBBKeyID = m_blackboardComponent->GetKeyID("CurrentPatrolDest");
+            m_isInGroupKeyID = m_blackboardComponent->GetKeyID("IsInGroup");
+
 
             //Set this agent in the BT
             m_blackboardComponent->SetValue<UBlackboardKeyType_Object>(m_blackboardComponent->GetKeyID("SelfActor"), pawn);

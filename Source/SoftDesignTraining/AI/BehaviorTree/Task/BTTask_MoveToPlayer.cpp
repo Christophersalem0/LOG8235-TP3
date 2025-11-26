@@ -12,7 +12,7 @@
 EBTNodeResult::Type UBTTask_MoveToPlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	if (ASDTAIController* aiController = Cast<ASDTAIController>(OwnerComp.GetAIOwner())) {
-		aiController->MoveToPlayer();
+		aiController->MoveToLKP();
 		return EBTNodeResult::Succeeded;
 	}
 	return EBTNodeResult::Failed;

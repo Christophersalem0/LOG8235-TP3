@@ -27,6 +27,9 @@ void AiAgentGroupManager::Destroy()
 
 void AiAgentGroupManager::Disband()
 {
+    for (auto agent : m_registeredAgents) {
+        agent->IsInGroup = false;
+    }
     m_registeredAgents.Empty();
 }
 
@@ -41,28 +44,17 @@ void AiAgentGroupManager::UnregisterAIAgent(ASDTBaseAIController* aiAgent)
     m_registeredAgents.Remove(aiAgent);
 }
 
-TargetLKPInfo AiAgentGroupManager::GetLKPFromGroup(const FString& targetLabel, bool& targetfound)
+TargetLKPInfo AiAgentGroupManager::GetLKPFromGroup()
 {
-    int agentCount = m_registeredAgents.Num();
-    TargetLKPInfo outLKPInfo = TargetLKPInfo();
-    targetfound = false;
+    return m_CurrentTargetLKPInfo;
+}
 
-    for (int i = 0; i < agentCount; ++i)
-    {
-        ASDTBaseAIController* aiAgent = m_registeredAgents[i];
-        if (aiAgent)
-        {
-            const TargetLKPInfo& targetLKPInfo = aiAgent->GetCurrentTargetLKPInfo();
-            if (targetLKPInfo.GetTargetLabel() == targetLabel)
-            {
-                if (targetLKPInfo.GetLastUpdatedTimeStamp() > outLKPInfo.GetLastUpdatedTimeStamp())
-                {
-                    targetfound = targetLKPInfo.GetLKPState() != TargetLKPInfo::ELKPState::LKPState_Invalid;
-                    outLKPInfo = targetLKPInfo;
-                }
-            }
-        }
-    }
+void AiAgentGroupManager::SetGroupLKP(TargetLKPInfo targetLKPInfo) {
+    m_CurrentTargetLKPInfo = targetLKPInfo;
+    m_SeenThisTick = true;
+}
 
-    return outLKPInfo;
+void AiAgentGroupManager::InvalidLKP() {
+    m_CurrentTargetLKPInfo.SetLKPState(TargetLKPInfo::ELKPState::LKPState_Invalid);
+    if (!m_SeenThisTick) Disband();
 }
