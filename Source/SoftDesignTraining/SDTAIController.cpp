@@ -9,6 +9,8 @@
 #include "DrawDebugHelpers.h"
 #include "Kismet/KismetMathLibrary.h"
 //#include "UnrealMathUtility.h"
+#include "BehaviorTree/Blackboard/BlackboardKeyType_Bool.h"
+#include "AiAgentGroupManager.h"
 #include "SDTUtils.h"
 #include "EngineUtils.h"
 
@@ -47,8 +49,72 @@ void ASDTAIController::Tick(float deltaTime)
 
 void ASDTAIController::UpdateBTLogic(float deltaTime)
 {
-    UpdatePlayerInteraction(deltaTime);
+    DetectPlayer(deltaTime);
     return;
+}
+
+void ASDTAIController::DetectPlayer(float deltaTime) {
+    if (AtJumpSegment)
+        return;
+
+    APawn* selfPawn = GetPawn();
+    if (!selfPawn)
+        return;
+
+    ACharacter* playerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+    if (!playerCharacter)
+        return;
+
+
+    FVector detectionStartLocation = selfPawn->GetActorLocation() + selfPawn->GetActorForwardVector() * m_DetectionCapsuleForwardStartingOffset;
+    FVector detectionEndLocation = detectionStartLocation + selfPawn->GetActorForwardVector() * m_DetectionCapsuleHalfLength * 2;
+
+    TArray<TEnumAsByte<EObjectTypeQuery>> detectionTraceObjectTypes;
+    detectionTraceObjectTypes.Add(UEngineTypes::ConvertToObjectType(COLLISION_PLAYER));
+
+    TArray<FHitResult> allDetectionHits;
+    GetWorld()->SweepMultiByObjectType(allDetectionHits, detectionStartLocation, detectionEndLocation, FQuat::Identity, detectionTraceObjectTypes, FCollisionShape::MakeSphere(m_DetectionCapsuleRadius));
+    if (m_DrawDebug) {
+        DrawDebugCapsule(GetWorld(), detectionStartLocation + m_DetectionCapsuleHalfLength * selfPawn->GetActorForwardVector(), m_DetectionCapsuleHalfLength, m_DetectionCapsuleRadius, selfPawn->GetActorQuat() * selfPawn->GetActorUpVector().ToOrientationQuat(), FColor::Blue);
+    }
+
+    FHitResult detectionHit;
+    GetHightestPriorityDetectionHit(allDetectionHits, detectionHit);
+
+    UPrimitiveComponent* component = detectionHit.GetComponent();
+    bool PlayerInDetectionCapsule = component && component->GetCollisionObjectType() == COLLISION_PLAYER;
+
+    if (PlayerInDetectionCapsule) {
+        if (HasLoSOnHit(detectionHit)) {
+            CanSeePlayer = true;
+            AiAgentGroupManager::GetInstance()->RegisterAIAgent(this);
+            IsInGroup = true;
+            m_CurrentLKPInfo.SetLKPPos(playerCharacter->GetActorLocation());
+            m_CurrentLKPInfo.SetLKPState(TargetLKPInfo::ELKPState::LKPState_ValidByLOS);
+            m_CurrentLKPInfo.SetTargetLabel(playerCharacter->GetActorLabel());
+            m_CurrentLKPInfo.SetLastUpdatedTimeStamp(UGameplayStatics::GetRealTimeSeconds(GetWorld()));
+            // when not in group
+            //if (GetWorld()->GetTimerManager().IsTimerActive(m_PlayerInteractionNoLosTimer))
+            //{
+            //    GetWorld()->GetTimerManager().ClearTimer(m_PlayerInteractionNoLosTimer);
+            //    m_PlayerInteractionNoLosTimer.Invalidate();
+            //    if (m_DrawDebug) {
+            //        DrawDebugString(GetWorld(), FVector(0.f, 0.f, 10.f), "Got LoS", GetPawn(), FColor::Red, 5.f, false);
+            //    }
+            //}
+        } 
+    }
+    else {
+        // when not in group
+        //if (!GetWorld()->GetTimerManager().IsTimerActive(m_PlayerInteractionNoLosTimer))
+        //{
+        //    GetWorld()->GetTimerManager().SetTimer(m_PlayerInteractionNoLosTimer, this, &ASDTAIController::OnPlayerInteractionNoLosDone, 3.f, false);
+        //    if (m_DrawDebug) {
+        //        DrawDebugString(GetWorld(), FVector(0.f, 0.f, 10.f), "Lost LoS", GetPawn(), FColor::Red, 5.f, false);
+        //    }
+        //}
+    }
+    m_blackboardComponent->SetValue<UBlackboardKeyType_Bool>(GetTargetSeenKeyID(), CanSeePlayer);
 }
 
 void ASDTAIController::GoToBestTarget(float deltaTime)
@@ -161,7 +227,7 @@ void ASDTAIController::OnPlayerInteractionNoLosDone()
 {
     GetWorld()->GetTimerManager().ClearTimer(m_PlayerInteractionNoLosTimer);
     DrawDebugString(GetWorld(), FVector(0.f, 0.f, 10.f), "TIMER DONE", GetPawn(), FColor::Red, 5.f, false);
-
+    CanSeePlayer = false;
     if (!AtJumpSegment)
     {
         AIStateInterrupted();

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "AIController.h"
 #include "SoftDesignTraining/AI/SoftDesignAIController.h"
+#include "TargetLKPInfo.h"
 #include "SDTBaseAIController.generated.h"
 
 /**
@@ -19,11 +20,15 @@ public:
 
     ASDTBaseAIController(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
     virtual void Tick(float deltaTime) override;
+    virtual TargetLKPInfo GetCurrentTargetLKPInfo() { return m_CurrentLKPInfo; };
     bool m_ReachedTarget;
+    bool IsInGroup = false;
+    bool CanSeePlayer = false;
 	
 protected:
     virtual void RotationUpdate(float deltaTime) {};
     virtual void ImpulseToDirection(float deltaTime) {};
+    TargetLKPInfo m_CurrentLKPInfo;
 
 private:
     virtual void GoToBestTarget(float deltaTime) {};

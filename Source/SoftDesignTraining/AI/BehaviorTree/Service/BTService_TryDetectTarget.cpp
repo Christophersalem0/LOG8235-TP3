@@ -19,8 +19,7 @@ void UBTService_TryDetectTarget::TickNode(UBehaviorTreeComponent& OwnerComp, uin
 {
     if (ASDTAIController* aiController = Cast<ASDTAIController>(OwnerComp.GetAIOwner()))
     {
-        bool canSeeTarget = aiController->m_PlayerInteractionBehavior == ASDTAIController::PlayerInteractionBehavior::PlayerInteractionBehavior_Chase || aiController->m_PlayerInteractionBehavior == ASDTAIController::PlayerInteractionBehavior::PlayerInteractionBehavior_Flee;
-        OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(aiController->GetTargetSeenKeyID(), canSeeTarget);
+        OwnerComp.GetBlackboardComponent()->SetValue<UBlackboardKeyType_Bool>(aiController->GetTargetSeenKeyID(), aiController->CanSeePlayer);
     }
 }
 

@@ -54,9 +54,7 @@ public:
     bool InAir = false;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = AI)
-    bool Landing = false;
-
-    bool CanSeePlayer;
+    bool Landing = false;   
 
     enum PlayerInteractionBehavior
     {
@@ -72,6 +70,9 @@ protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Decision_Exercises")
     EAIBrainMode m_currentBrainLogic;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
+    bool m_DrawDebug;
 
     void GetHightestPriorityDetectionHit(const TArray<FHitResult>& hits, FHitResult& outDetectionHit);
     void UpdatePlayerInteractionBehavior(const FHitResult& detectionHit, float deltaTime);
@@ -89,6 +90,7 @@ public:
     void MoveToRandomCollectible();
     FVector3d MoveToBestFleeLocation(bool shouldMove = true);
     void MoveToPlayer();
+    void DetectPlayer(float deltaTime);
     PlayerInteractionBehavior m_PlayerInteractionBehavior;
 
 private:

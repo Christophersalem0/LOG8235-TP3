@@ -3,9 +3,6 @@
 
 #include "SoftDesignAIController.h"
 #include "SoftDesignTraining/SDTAIController.h"
-#include "BehaviorTree/Blackboard/BlackboardKeyType_Object.h"
-#include "BehaviorTree/BlackboardComponent.h"
-#include "BehaviorTree/BehaviorTree.h"
 
 
 ASoftDesignAIController::ASoftDesignAIController(const FObjectInitializer& ObjectInitializer)
