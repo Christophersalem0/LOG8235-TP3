@@ -89,7 +89,7 @@ void ASDTAIController::DetectPlayer(float deltaTime) {
     UPrimitiveComponent* component = detectionHit.GetComponent();
     bool PlayerInDetectionCapsule = component && component->GetCollisionObjectType() == COLLISION_PLAYER;
 
-    if (PlayerInDetectionCapsule) {
+    if (PlayerInDetectionCapsule && SDTUtils::RaycastNavMesh(GetWorld(), playerCharacter->GetActorLocation(), playerCharacter->GetActorLocation() - FVector(0.f, 0.f, 100.f))) {
         if (HasLoSOnHit(detectionHit)) {
             CanSeePlayer = true;
             AiAgentGroupManager* Group = AiAgentGroupManager::GetInstance();
@@ -97,11 +97,17 @@ void ASDTAIController::DetectPlayer(float deltaTime) {
                 Group->RegisterAIAgent(this);
                 IsInGroup = true;
             }
-            m_CurrentLKPInfo.SetLKPPos(playerCharacter->GetActorLocation());
-            m_CurrentLKPInfo.SetLKPState(TargetLKPInfo::ELKPState::LKPState_ValidByLOS);
-            m_CurrentLKPInfo.SetTargetLabel(playerCharacter->GetActorLabel());
-            m_CurrentLKPInfo.SetLastUpdatedTimeStamp(UGameplayStatics::GetRealTimeSeconds(GetWorld()));
-            Group->SetGroupLKP(m_CurrentLKPInfo);
+            Group->m_SeenThisTick = true;
+            if (SDTUtils::IsPlayerPoweredUp(GetWorld())) {
+                Group->InvalidLKP();
+            }
+            else {
+                m_CurrentLKPInfo.SetLKPPos(playerCharacter->GetActorLocation());
+                m_CurrentLKPInfo.SetLKPState(TargetLKPInfo::ELKPState::LKPState_ValidByLOS);
+                m_CurrentLKPInfo.SetTargetLabel(playerCharacter->GetActorLabel());
+                m_CurrentLKPInfo.SetLastUpdatedTimeStamp(UGameplayStatics::GetRealTimeSeconds(GetWorld()));
+                Group->SetGroupLKP(m_CurrentLKPInfo);
+            }
 
             // when not in group
             //if (GetWorld()->GetTimerManager().IsTimerActive(m_PlayerInteractionNoLosTimer))
@@ -200,10 +206,9 @@ void ASDTAIController::MoveToLKP()
     if (!Group || Group->GetLKPFromGroup().GetLKPState() == TargetLKPInfo::ELKPState::LKPState_Invalid)
         return;
     DrawDebugSphere(GetWorld(), Group->GetLKPFromGroup().GetLKPPos() + FVector(0.f, 0.f, 100.f), 15.0f, 32, FColor::Yellow);
-    DrawDebugString(GetWorld(), FVector(0.f, 0.f, 10.f), Group->GetLKPFromGroup().GetLKPState() == TargetLKPInfo::ELKPState::LKPState_Invalid ? "invalid" : "valid", GetPawn(), FColor::Red, 5.f, false);
     MoveToLocation(Group->GetLKPFromGroup().GetLKPPos(), 0.5f, false, true, true, false, NULL, false);
     OnMoveToTarget();
-    if ((GetPawn()->GetActorLocation() - Group->GetLKPFromGroup().GetLKPPos()).SizeSquared() < 200) {
+    if ((GetPawn()->GetActorLocation() - Group->GetLKPFromGroup().GetLKPPos()).SizeSquared() < 100) {
         Group->InvalidLKP();
     }
 }

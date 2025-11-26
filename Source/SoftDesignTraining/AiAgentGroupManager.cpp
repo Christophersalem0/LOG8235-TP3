@@ -52,10 +52,9 @@ TargetLKPInfo AiAgentGroupManager::GetLKPFromGroup()
 
 void AiAgentGroupManager::SetGroupLKP(TargetLKPInfo targetLKPInfo) {
     m_CurrentTargetLKPInfo = targetLKPInfo;
-    m_SeenThisTick = true;
 }
 
 void AiAgentGroupManager::InvalidLKP() {
     m_CurrentTargetLKPInfo.SetLKPState(TargetLKPInfo::ELKPState::LKPState_Invalid);
-    if (!m_SeenThisTick) Disband();
+    if (m_SeenThisTick) Disband();
 }

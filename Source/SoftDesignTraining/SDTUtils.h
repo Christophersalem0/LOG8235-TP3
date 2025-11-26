@@ -14,6 +14,7 @@ class SOFTDESIGNTRAINING_API SDTUtils
 public:
     static bool Raycast(UWorld* uWorld, FVector sourcePoint, FVector targetPoint);
     static bool IsPlayerPoweredUp(UWorld* uWorld);
+    static bool RaycastNavMesh(UWorld* uWorld, FVector sourcePoint, FVector targetPoint);
 
     enum NavType
     {
@@ -26,4 +27,5 @@ public:
 
     static bool IsNavLink(const FNavPathPoint& PathVert) { return (FNavMeshNodeFlags(PathVert.Flags).PathFlags & RECAST_STRAIGHTPATH_OFFMESH_CONNECTION) != 0; }
     static bool HasJumpFlag(const FNavPathPoint& PathVert) { return     IsNavTypeFlagSet(FNavMeshNodeFlags(PathVert.Flags).AreaFlags, NavType::Jump); }
+
 };
