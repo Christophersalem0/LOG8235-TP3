@@ -40,6 +40,25 @@ void ASoftDesignTrainingPlayerController::MoveRight(float value)
     }
 }
 
+void ASoftDesignTrainingPlayerController::PlayerTick(float DeltaTime)
+{
+    Super::PlayerTick(DeltaTime);
+
+    APawn* const pawn = GetPawn();
+    if (!pawn)
+        return;
+
+    const FVector CurrentInput = pawn->GetLastMovementInputVector();
+
+    if (!CurrentInput.IsNearlyZero())
+    {
+        FVector MoveDir = -CurrentInput.GetSafeNormal2D();
+
+        FRotator TargetRot = MoveDir.Rotation();
+        pawn->SetActorRotation(TargetRot);
+    }
+}
+
 void ASoftDesignTrainingPlayerController::Jump()
 {
     ACharacter* character = Cast<ACharacter>(GetPawn());

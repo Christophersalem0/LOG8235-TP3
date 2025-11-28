@@ -3,6 +3,7 @@
 
 #include "AgentsManager.h"
 #include "AiAgentGroupManager.h"
+#include "SDTUtils.h"
 
 // Sets default values
 AAgentsManager::AAgentsManager()
@@ -28,18 +29,24 @@ void AAgentsManager::Tick(float DeltaTime)
 	AgentGroupManager->m_SeenThisTick = false;
 
 	auto currentTime = FPlatformTime::Seconds();
-	int stopIdx = m_LastUpdatedIndex++;
+	int stopIdx = m_LastUpdatedIndex;
 	
+	if (SDTUtils::IsPlayerPoweredUp(GetWorld())) {
+		AgentGroupManager->InvalidLKP();
+		AgentGroupManager->Disband();
+	}
 
-	while ((FPlatformTime::Seconds() - currentTime) * 1000 < m_Budget && stopIdx != m_LastUpdatedIndex) {
-
+	 do {
 		ASDTAIController* agent = m_Agents[m_LastUpdatedIndex];
 		if (!agent->IsInGroup || !AgentGroupManager->m_SeenThisTick) {
 			agent->DetectPlayer(DeltaTime);
 		}
 		m_LastUpdatedIndex = (m_LastUpdatedIndex + 1) % m_Agents.Num();
-	}
+	 } while ((FPlatformTime::Seconds() - currentTime) * 1000 < m_Budget && stopIdx != m_LastUpdatedIndex);
 
+	if (!AgentGroupManager->m_SeenThisTick && AgentGroupManager->GetLKPFromGroup().GetLKPState() == TargetLKPInfo::ELKPState::LKPState_Invalid) {
+		AgentGroupManager->Disband();
+	}
 }
 
 void AAgentsManager::RegisterAIAgent(ASDTAIController* aiAgent)

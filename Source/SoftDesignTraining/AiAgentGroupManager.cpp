@@ -27,6 +27,7 @@ void AiAgentGroupManager::Destroy()
 
 void AiAgentGroupManager::Disband()
 {
+    m_CurrentTargetLKPInfo.SetLKPState(TargetLKPInfo::ELKPState::LKPState_Invalid);
     for (auto agent : m_registeredAgents) {
         agent->IsInGroup = false;
         agent->m_ReachedTarget = true;

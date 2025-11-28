@@ -208,7 +208,7 @@ void ASDTAIController::MoveToLKP()
     DrawDebugSphere(GetWorld(), Group->GetLKPFromGroup().GetLKPPos() + FVector(0.f, 0.f, 100.f), 15.0f, 32, FColor::Yellow);
     MoveToLocation(Group->GetLKPFromGroup().GetLKPPos(), 0.5f, false, true, true, false, NULL, false);
     OnMoveToTarget();
-    if ((GetPawn()->GetActorLocation() - Group->GetLKPFromGroup().GetLKPPos()).SizeSquared() < 100) {
+    if ((GetPawn()->GetActorLocation() - Group->GetLKPFromGroup().GetLKPPos()).SizeSquared() < 10000) {
         Group->InvalidLKP();
     }
 }
