@@ -9,7 +9,7 @@ EBTNodeResult::Type UBTTask_IsNearest::ExecuteTask(UBehaviorTreeComponent& Owner
 {
     if (ASDTBaseAIController* aiController = Cast<ASDTBaseAIController>(OwnerComp.GetAIOwner()))
     {
-        if (AiAgentGroupManager::GetInstance()->IsNearestToPlayer(aiController, GetWorld()))
+        if (AiAgentGroupManager::GetInstance()->IsNearestToPlayer(aiController))
         {
             DrawDebugString(GetWorld(), FVector(0.f, 0.f, 10.f), "JLE RUSH", aiController->GetPawn(), FColor::Red, 5.f, false);
 

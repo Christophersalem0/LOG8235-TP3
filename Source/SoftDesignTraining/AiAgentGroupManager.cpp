@@ -7,7 +7,7 @@ AiAgentGroupManager* AiAgentGroupManager::m_Instance;
 
 AiAgentGroupManager::AiAgentGroupManager()
 {
-
+    
 }
 
 AiAgentGroupManager* AiAgentGroupManager::GetInstance()
@@ -56,16 +56,20 @@ void AiAgentGroupManager::InvalidLKP() {
 }
 
 void AiAgentGroupManager::SetTargets(UWorld* world) {
-    m_circleLKP.Empty();
-    for (int i = 0; i < m_registeredAgents.Num(); i++) {
-        m_circleLKP.Add(FVector(FMath::Cos(i * 360 / m_registeredAgents.Num() * PI / 180), FMath::Sin(i * 360 / m_registeredAgents.Num() * PI / 180), 0));
+    if (m_nbOfGroups != m_registeredAgents.Num() && m_registeredAgents.Num() < 9) {
+        m_nbOfGroups = FMath::Min(8, m_registeredAgents.Num());
+        m_circleLKP.Empty();
+        for (int i = 0; i < m_nbOfGroups; i++) {
+            m_circleLKP.Add(FVector(FMath::Cos(i * 360 / m_nbOfGroups * PI / 180), FMath::Sin(i * 360 / m_nbOfGroups * PI / 180), 0));
+        }
     }
     ACharacter* playerCharacter = UGameplayStatics::GetPlayerCharacter(world, 0);
     if (!playerCharacter)
         return;
     for (int i = 0; i < m_registeredAgents.Num(); i++) {
         int index = i % m_nbOfGroups;
-        FVector target = m_CurrentTargetLKPInfo.GetLKPPos() + m_circleLKP[index] * (m_registeredAgents[i]->GetPawn()->GetActorLocation() - playerCharacter->GetActorLocation()).Size() * 0.5;
+        FVector target = m_CurrentTargetLKPInfo.GetLKPPos() + m_circleLKP[index] * (m_registeredAgents[i]->GetPawn()->GetActorLocation() - playerCharacter->GetActorLocation()).Size() * FMath::Min(.9, .5 * (float(i) / float(m_nbOfGroups) + 1));
+        DrawDebugSphere(world, target + FVector(0.f, 0.f, 100.f), 15.0f, 32, FColor::Blue);
         m_registeredAgents[i]->target = target;
     }
 }
@@ -74,21 +78,31 @@ bool AiAgentGroupManager::IsGroupEmpty() {
     return m_registeredAgents.Num() == 0;
 }
 
-bool AiAgentGroupManager::IsNearestToPlayer(ASDTBaseAIController* agentController, UWorld* world) {
+void AiAgentGroupManager::CalculateNearestToPlayer(UWorld* world) {
+    if (world->GetTimerManager().IsTimerActive(m_RushTimer) && currentNearest != nullptr || m_registeredAgents.IsEmpty())
+        return;
     ACharacter* playerCharacter = UGameplayStatics::GetPlayerCharacter(world, 0);
     if (!playerCharacter)
-        return false;
+        return;
 
-    float DistanceToPlayer = (agentController->GetPawn()->GetActorLocation() - playerCharacter->GetActorLocation()).SizeSquared();
+    float LowestDistanceToPlayer = MAX_FLT;
     //DrawDebugString(world, FVector(0.f, 0.f, 10.f), FString::SanitizeFloat(DistanceToPlayer), agentController->GetPawn(), FColor::Red, 5.f, false);
 
     for (auto& agent : m_registeredAgents) {
-        if ((agent->GetPawn()->GetActorLocation() - playerCharacter->GetActorLocation()).SizeSquared() < DistanceToPlayer + 100) {
-            if (agent != agentController)
-                return false;
+        float DistanceToPlayer = (agent->GetPawn()->GetActorLocation() - playerCharacter->GetActorLocation()).SizeSquared();
+        if (DistanceToPlayer < LowestDistanceToPlayer) {
+            currentNearest = agent;
+            LowestDistanceToPlayer = DistanceToPlayer;
         }
-
     }
+    world->GetTimerManager().SetTimer(
+        m_RushTimer,
+        [this, world]() { CalculateNearestToPlayer(world); },
+        1.f,
+        false
+    );
+}
 
-    return true;
+bool AiAgentGroupManager::IsNearestToPlayer(ASDTBaseAIController* agentController) {
+    return agentController == currentNearest;
 }

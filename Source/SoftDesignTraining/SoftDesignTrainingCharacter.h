@@ -14,7 +14,7 @@ public:
 
     virtual void BeginPlay() override;
     virtual void OnCollectPowerUp() {};
-    void Die();
+    virtual void Die();
 
 protected:
     UFUNCTION()

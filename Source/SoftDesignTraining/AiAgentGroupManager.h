@@ -13,7 +13,8 @@ public:
     static void Destroy();
 
     void RegisterAIAgent(ASDTBaseAIController* aiAgent);
-    bool IsNearestToPlayer(ASDTBaseAIController* agentController, UWorld* world);
+    bool IsNearestToPlayer(ASDTBaseAIController* agentController);
+    void CalculateNearestToPlayer(UWorld* world);
     void Disband();
     TargetLKPInfo GetLKPFromGroup();
     void SetGroupLKP(TargetLKPInfo targetLKPInfo);
@@ -28,9 +29,10 @@ private:
 
     //SINGLETON
     AiAgentGroupManager();
-    const int m_nbOfGroups = 8;
+    int m_nbOfGroups = 8;
     TArray<FVector> m_circleLKP;
     static AiAgentGroupManager* m_Instance;
     TargetLKPInfo m_CurrentTargetLKPInfo;
-
+    FTimerHandle m_RushTimer;
+    ASDTBaseAIController* currentNearest;
 };

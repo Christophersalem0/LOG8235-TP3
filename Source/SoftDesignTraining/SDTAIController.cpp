@@ -215,8 +215,11 @@ void ASDTAIController::MoveToLKP()
     
     FVector AccessibleLocation;
     if (SDTUtils::GetNearestNavMeshPoint(GetWorld(), this, AccessibleLocation)) {
+        ACharacter* playerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+        if (!playerCharacter)
+            return;
         DrawDebugSphere(GetWorld(), AccessibleLocation + FVector(0.f, 0.f, 100.f), 15.0f, 32, FColor::Blue);
-        MoveToLocation(AccessibleLocation, 0.5f, false, true, true, false, NULL, false);
+        MoveToLocation(shouldGoTotarget ? AccessibleLocation : playerCharacter->GetActorLocation(), 0.5f, false, true, true, false, NULL, false);
         OnMoveToTarget();
     }
     if ((GetPawn()->GetActorLocation() - Group->GetLKPFromGroup().GetLKPPos()).SizeSquared() < 10000) {

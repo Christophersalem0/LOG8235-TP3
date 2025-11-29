@@ -56,3 +56,10 @@ void ASoftDesignTrainingMainCharacter::OnPowerUpDone()
 
     GetWorld()->GetTimerManager().ClearTimer(m_PowerUpTimer);
 }
+
+void ASoftDesignTrainingMainCharacter::Die()
+{
+    Super::Die();
+    AiAgentGroupManager* Group = AiAgentGroupManager::GetInstance();
+    Group->Disband();
+}

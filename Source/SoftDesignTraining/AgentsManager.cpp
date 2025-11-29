@@ -35,6 +35,7 @@ void AAgentsManager::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	AiAgentGroupManager* AgentGroupManager = AiAgentGroupManager::GetInstance();
 	AgentGroupManager->m_SeenThisTick = false;
+	AgentGroupManager->CalculateNearestToPlayer(GetWorld());
 
 	auto currentTime = FPlatformTime::Seconds();
 	int stopIdx = m_LastUpdatedIndex;

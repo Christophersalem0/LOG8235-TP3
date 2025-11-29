@@ -17,6 +17,7 @@ public:
     ASoftDesignTrainingMainCharacter();
 
     virtual void OnCollectPowerUp() override;
+    virtual void Die() override;
 
     bool IsPoweredUp() { return m_IsPoweredUp; }
 
