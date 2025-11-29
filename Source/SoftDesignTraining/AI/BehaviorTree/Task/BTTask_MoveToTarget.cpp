@@ -15,8 +15,9 @@ EBTNodeResult::Type UBTTask_MoveToTarget::ExecuteTask(UBehaviorTreeComponent& Ow
     if (ASDTAIController* aiController = Cast<ASDTAIController>(OwnerComp.GetAIOwner()))
     {
         FVector3d vector = OwnerComp.GetBlackboardComponent()->GetValue<UBlackboardKeyType_Vector>(aiController->GetTargetPosBBKeyID());
-        aiController->MoveToLocation(vector, 0.5f, false, true, false, false, NULL, false);
-        aiController->OnMoveToTarget();
+        //aiController->MoveToLocation(aiController->target, 0.5f, false, true, false, false, NULL, false);
+        //aiController->OnMoveToTarget();
+        aiController->MoveToLKP();
         return EBTNodeResult::Succeeded;
     }
 

@@ -70,6 +70,10 @@ void ASDTAIController::DetectPlayer(float deltaTime) {
     if (!playerCharacter)
         return;
 
+    if (GetMoveStatus() == EPathFollowingStatus::Idle)
+    {
+        m_ReachedTarget = true;
+    }
 
     FVector detectionStartLocation = selfPawn->GetActorLocation() + selfPawn->GetActorForwardVector() * m_DetectionCapsuleForwardStartingOffset;
     FVector detectionEndLocation = detectionStartLocation + selfPawn->GetActorForwardVector() * m_DetectionCapsuleHalfLength * 2;
@@ -93,15 +97,15 @@ void ASDTAIController::DetectPlayer(float deltaTime) {
         if (HasLoSOnHit(detectionHit)) {
             CanSeePlayer = true;
             AiAgentGroupManager* Group = AiAgentGroupManager::GetInstance();
-            if (!IsInGroup) {
-                Group->RegisterAIAgent(this);
-                IsInGroup = true;
-            }
             Group->m_SeenThisTick = true;
             if (SDTUtils::IsPlayerPoweredUp(GetWorld())) {
                 Group->InvalidLKP();
             }
             else {
+                if (!IsInGroup) {
+                Group->RegisterAIAgent(this);
+                IsInGroup = true;
+                }
                 m_CurrentLKPInfo.SetLKPPos(playerCharacter->GetActorLocation());
                 m_CurrentLKPInfo.SetLKPState(TargetLKPInfo::ELKPState::LKPState_ValidByLOS);
                 m_CurrentLKPInfo.SetTargetLabel(playerCharacter->GetActorLabel());
@@ -206,9 +210,15 @@ void ASDTAIController::MoveToLKP()
     if (!Group || Group->GetLKPFromGroup().GetLKPState() == TargetLKPInfo::ELKPState::LKPState_Invalid)
         return;
     DrawDebugSphere(GetWorld(), Group->GetLKPFromGroup().GetLKPPos() + FVector(0.f, 0.f, 100.f), 15.0f, 32, FColor::Yellow);
-    bool shouldGoTotarget = (GetPawn()->GetActorLocation() - Group->GetLKPFromGroup().GetLKPPos()).SizeSquared() > (GetPawn()->GetActorLocation() - target).SizeSquared() && (GetPawn()->GetActorLocation() - Group->GetLKPFromGroup().GetLKPPos()).SizeSquared() > 270400;
-    MoveToLocation(shouldGoTotarget ? target : Group->GetLKPFromGroup().GetLKPPos(), 0.5f, false, true, true, false, NULL, false);
-    OnMoveToTarget();
+    bool shouldGoTotarget = (GetPawn()->GetActorLocation() - Group->GetLKPFromGroup().GetLKPPos()).SizeSquared() > (GetPawn()->GetActorLocation() - target).SizeSquared() && (GetPawn()->GetActorLocation() - Group->GetLKPFromGroup().GetLKPPos()).SizeSquared() > 40000;
+    
+    
+    FVector AccessibleLocation;
+    if (SDTUtils::GetNearestNavMeshPoint(GetWorld(), this, AccessibleLocation)) {
+        DrawDebugSphere(GetWorld(), AccessibleLocation + FVector(0.f, 0.f, 100.f), 15.0f, 32, FColor::Blue);
+        MoveToLocation(AccessibleLocation, 0.5f, false, true, true, false, NULL, false);
+        OnMoveToTarget();
+    }
     if ((GetPawn()->GetActorLocation() - Group->GetLKPFromGroup().GetLKPPos()).SizeSquared() < 10000) {
         Group->InvalidLKP();
     }
@@ -443,6 +453,8 @@ void ASDTAIController::AIStateInterrupted()
 {
     StopMovement();
     m_ReachedTarget = true;
+    AtJumpSegment = false;
+    StartBehaviorTree(this);
 }
 
 ASDTAIController::PlayerInteractionBehavior ASDTAIController::GetCurrentPlayerInteractionBehavior(const FHitResult& hit)

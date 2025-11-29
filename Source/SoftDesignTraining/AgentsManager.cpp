@@ -56,7 +56,7 @@ void AAgentsManager::Tick(float DeltaTime)
 		AgentGroupManager->Disband();
 	}
 
-	AgentGroupManager->SetTargets();
+	AgentGroupManager->SetTargets(GetWorld());
 }
 
 void AAgentsManager::RegisterAIAgent(ASDTAIController* aiAgent)

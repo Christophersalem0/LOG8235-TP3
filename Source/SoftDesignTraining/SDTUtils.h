@@ -4,6 +4,8 @@
 
 #include "AI/Navigation/NavigationTypes.h"
 #include "NavMesh/NavMeshPath.h"
+#include "SDTAIController.h"
+
 
 #define COLLISION_DEATH_OBJECT		ECollisionChannel::ECC_GameTraceChannel3
 #define COLLISION_PLAYER        	ECollisionChannel::ECC_GameTraceChannel4
@@ -15,6 +17,7 @@ public:
     static bool Raycast(UWorld* uWorld, FVector sourcePoint, FVector targetPoint);
     static bool IsPlayerPoweredUp(UWorld* uWorld);
     static bool RaycastNavMesh(UWorld* uWorld, FVector sourcePoint, FVector targetPoint);
+    static bool GetNearestNavMeshPoint(UWorld* uWorld, ASDTAIController* Controller, FVector& Location);
 
     enum NavType
     {

@@ -18,7 +18,7 @@ public:
     TargetLKPInfo GetLKPFromGroup();
     void SetGroupLKP(TargetLKPInfo targetLKPInfo);
     void InvalidLKP();
-    void SetTargets();
+    void SetTargets(UWorld* world);
     bool IsGroupEmpty();
 
     bool m_SeenThisTick;

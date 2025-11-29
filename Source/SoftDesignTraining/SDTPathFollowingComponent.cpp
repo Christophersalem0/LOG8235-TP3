@@ -127,6 +127,7 @@ void USDTPathFollowingComponent::SetMoveSegment(int32 SegmentStartIndex)
         if (controller)
         {
             ACharacter* character = Cast<ACharacter>(controller->GetPawn());
+            controller->StopBehaviorTree(controller);
             if (character)
             {
                 UCharacterMovementComponent* charMoveComp = Cast<UCharacterMovementComponent>(character->GetMovementComponent());
@@ -148,6 +149,7 @@ void USDTPathFollowingComponent::SetMoveSegment(int32 SegmentStartIndex)
         ASDTAIController* controller = Cast<ASDTAIController>(GetOwner());
         if (controller)
         {
+            controller->StartBehaviorTree(controller);
             ACharacter* character = Cast<ACharacter>(controller->GetPawn());
             if (character)
             {

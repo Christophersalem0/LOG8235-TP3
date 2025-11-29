@@ -46,7 +46,8 @@ void UProximityTest::RunTest(FEnvQueryInstance& Instance) const {
         // Find the distance to the closest ally
         for (const auto& Ally : Group->m_registeredAgents)
         {
-            if (Ally->GetPawn()) {
+            APawn* QuerierPawn = Cast<APawn>(Instance.Owner.Get());
+            if (Ally->GetPawn() && Ally->GetPawn() != QuerierPawn) {
                 const float DistSq = FVector::DistSquared(ItemLocation, Ally->GetPawn()->GetActorLocation());
                 item.Score += DistSq;
 

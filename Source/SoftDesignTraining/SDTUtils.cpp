@@ -39,3 +39,18 @@ bool SDTUtils::RaycastNavMesh(UWorld* uWorld, FVector sourcePoint, FVector targe
 
     return (hitLocation - targetPoint).IsNearlyZero();
 }
+
+bool SDTUtils::GetNearestNavMeshPoint(UWorld* uWorld, ASDTAIController* Controller, FVector& Location)
+{
+    UNavigationSystemV1* NavSys = UNavigationSystemV1::GetNavigationSystem(uWorld);
+    const FNavAgentProperties& AgentProps = Controller->GetNavAgentPropertiesRef();
+    if (NavSys != nullptr)
+    {
+        FNavLocation ProjectedLocation;
+        NavSys->ProjectPointToNavigation(Controller->target, ProjectedLocation, FVector(500.0f, 500.0f, 300.0f), &AgentProps);
+        Location = ProjectedLocation.Location;
+        return true;
+    }
+   
+    return false;
+}

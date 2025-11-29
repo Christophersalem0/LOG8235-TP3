@@ -7,11 +7,7 @@ AiAgentGroupManager* AiAgentGroupManager::m_Instance;
 
 AiAgentGroupManager::AiAgentGroupManager()
 {
-    for (int i = 0; i < m_nbOfGroups; i++) {
-        m_circleLKP.Add(FVector(FMath::Cos(i * 360 / m_nbOfGroups * PI / 180) * 500, FMath::Sin(i * 360 / m_nbOfGroups * PI / 180) * 500, 0));
-        FVector MyVector = m_circleLKP[i];
-        UE_LOG(LogTemp, Warning, TEXT("My Vector: X=%.2f, Y=%.2f, Z=%.2f"), MyVector.X, MyVector.Y, MyVector.Z);
-    }
+
 }
 
 AiAgentGroupManager* AiAgentGroupManager::GetInstance()
@@ -59,10 +55,17 @@ void AiAgentGroupManager::InvalidLKP() {
     m_CurrentTargetLKPInfo.SetLKPState(TargetLKPInfo::ELKPState::LKPState_Invalid);
 }
 
-void AiAgentGroupManager::SetTargets() {
+void AiAgentGroupManager::SetTargets(UWorld* world) {
+    m_circleLKP.Empty();
+    for (int i = 0; i < m_registeredAgents.Num(); i++) {
+        m_circleLKP.Add(FVector(FMath::Cos(i * 360 / m_registeredAgents.Num() * PI / 180), FMath::Sin(i * 360 / m_registeredAgents.Num() * PI / 180), 0));
+    }
+    ACharacter* playerCharacter = UGameplayStatics::GetPlayerCharacter(world, 0);
+    if (!playerCharacter)
+        return;
     for (int i = 0; i < m_registeredAgents.Num(); i++) {
         int index = i % m_nbOfGroups;
-        FVector target = m_CurrentTargetLKPInfo.GetLKPPos() + m_circleLKP[index]; 
+        FVector target = m_CurrentTargetLKPInfo.GetLKPPos() + m_circleLKP[index] * (m_registeredAgents[i]->GetPawn()->GetActorLocation() - playerCharacter->GetActorLocation()).Size() * 0.5;
         m_registeredAgents[i]->target = target;
     }
 }
