@@ -9,22 +9,30 @@ ASDTBaseAIController::ASDTBaseAIController(const FObjectInitializer& ObjectIniti
     PrimaryActorTick.bCanEverTick = true;
     PrimaryActorTick.bStartWithTickEnabled = true;
     m_ReachedTarget = true;
+    IsInGroup = false;
+    CanSeePlayer = false;
 }
 
 void ASDTBaseAIController::Tick(float deltaTime)
 {
     Super::Tick(deltaTime);
 
-    UpdatePlayerInteraction(deltaTime);
+    //UpdatePlayerInteraction(deltaTime);
 
-    if (m_ReachedTarget)
+    /*if (m_ReachedTarget)
     {
         GoToBestTarget(deltaTime);
     }
     else
     {
         ShowNavigationPath();
-    }
+    }*/
 }
+
+void ASDTBaseAIController::leaveGroup() {
+    IsInGroup = false;
+    if (m_blackboardComponent)
+        m_blackboardComponent->SetValue<UBlackboardKeyType_Bool>(GetIsInGroupKeyID(), IsInGroup);
+};
 
 

@@ -26,7 +26,7 @@ void ASDTAIController::BeginPlay()
     Super::BeginPlay();
     Cast<AAgentsManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AAgentsManager::StaticClass()))->RegisterAIAgent(this);
 
-
+    target = GetPawn()->GetActorLocation();
     if (ASoftDesignAIController* aiController = Cast<ASoftDesignAIController>(this))
     {
         if (m_currentBrainLogic == EAIBrainMode::BehaviorTree)
@@ -46,8 +46,8 @@ void ASDTAIController::Tick(float deltaTime)
         UpdateBTLogic(deltaTime);
     }
     else {
-        Super::Tick(deltaTime);
     }*/
+    Super::Tick(deltaTime);
     if (IsInGroup)
         DrawDebugSphere(GetWorld(), GetPawn()->GetActorLocation() + FVector(0.f, 0.f, 100.f), 15.0f, 32, FColor::Purple);
 }
@@ -89,7 +89,7 @@ void ASDTAIController::DetectPlayer(float deltaTime) {
     UPrimitiveComponent* component = detectionHit.GetComponent();
     bool PlayerInDetectionCapsule = component && component->GetCollisionObjectType() == COLLISION_PLAYER;
 
-    if (PlayerInDetectionCapsule && SDTUtils::RaycastNavMesh(GetWorld(), playerCharacter->GetActorLocation(), playerCharacter->GetActorLocation() - FVector(0.f, 0.f, 100.f))) {
+    if (PlayerInDetectionCapsule) {
         if (HasLoSOnHit(detectionHit)) {
             CanSeePlayer = true;
             AiAgentGroupManager* Group = AiAgentGroupManager::GetInstance();
@@ -206,7 +206,8 @@ void ASDTAIController::MoveToLKP()
     if (!Group || Group->GetLKPFromGroup().GetLKPState() == TargetLKPInfo::ELKPState::LKPState_Invalid)
         return;
     DrawDebugSphere(GetWorld(), Group->GetLKPFromGroup().GetLKPPos() + FVector(0.f, 0.f, 100.f), 15.0f, 32, FColor::Yellow);
-    MoveToLocation(Group->GetLKPFromGroup().GetLKPPos(), 0.5f, false, true, true, false, NULL, false);
+    bool shouldGoTotarget = (GetPawn()->GetActorLocation() - Group->GetLKPFromGroup().GetLKPPos()).SizeSquared() > (GetPawn()->GetActorLocation() - target).SizeSquared() && (GetPawn()->GetActorLocation() - Group->GetLKPFromGroup().GetLKPPos()).SizeSquared() > 270400;
+    MoveToLocation(shouldGoTotarget ? target : Group->GetLKPFromGroup().GetLKPPos(), 0.5f, false, true, true, false, NULL, false);
     OnMoveToTarget();
     if ((GetPawn()->GetActorLocation() - Group->GetLKPFromGroup().GetLKPPos()).SizeSquared() < 10000) {
         Group->InvalidLKP();

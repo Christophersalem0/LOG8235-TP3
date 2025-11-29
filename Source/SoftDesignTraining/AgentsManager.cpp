@@ -21,6 +21,14 @@ void AAgentsManager::BeginPlay()
 	
 }
 
+void AAgentsManager::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	AiAgentGroupManager::GetInstance()->Destroy();
+}
+
+
 // Called every frame
 void AAgentsManager::Tick(float DeltaTime)
 {
@@ -44,9 +52,11 @@ void AAgentsManager::Tick(float DeltaTime)
 		m_LastUpdatedIndex = (m_LastUpdatedIndex + 1) % m_Agents.Num();
 	 } while ((FPlatformTime::Seconds() - currentTime) * 1000 < m_Budget && stopIdx != m_LastUpdatedIndex);
 
-	if (!AgentGroupManager->m_SeenThisTick && AgentGroupManager->GetLKPFromGroup().GetLKPState() == TargetLKPInfo::ELKPState::LKPState_Invalid) {
+	if (!AgentGroupManager->m_SeenThisTick && AgentGroupManager->GetLKPFromGroup().GetLKPState() == TargetLKPInfo::ELKPState::LKPState_Invalid && !AgentGroupManager->IsGroupEmpty()) {
 		AgentGroupManager->Disband();
 	}
+
+	AgentGroupManager->SetTargets();
 }
 
 void AAgentsManager::RegisterAIAgent(ASDTAIController* aiAgent)
