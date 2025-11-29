@@ -34,32 +34,30 @@ void UProximityTest::RunTest(FEnvQueryInstance& Instance) const {
         }
         return;
     }
-
+    float MaxDistance = 0;
+    float MinDistance = 0;
     // 3. Score each potential location based on distance to the nearest ally
     for (int i = 0; i < Items.Num(); i++)
     {
         FEnvQueryItem& item = Items[i];
         const FVector ItemLocation = GetItemLocation(Instance, i);
-        float MinDistanceSq = MAX_FLT;
+        item.Score = 0;
 
         // Find the distance to the closest ally
         for (const auto& Ally : Group->m_registeredAgents)
         {
             if (Ally->GetPawn()) {
                 const float DistSq = FVector::DistSquared(ItemLocation, Ally->GetPawn()->GetActorLocation());
-                if (DistSq < MinDistanceSq)
-                {
-                    MinDistanceSq = DistSq;
-                }
+                item.Score += DistSq;
+
             }
         }
+        if (item.Score > MaxDistance) MaxDistance = item.Score;
+        else if (item.Score < MinDistance) MinDistance = item.Score;
 
-        const float MinDistance = FMath::Sqrt(MinDistanceSq);
-
-        // Use a scoring mechanism:
-        // We want a high score for locations with LOW proximity to an ally.
-        // FMath::Clamp ensures the value stays between 0 and 1.
-        // We use (ProximityMaxDistance - MinDistance) to inverse the score for 'closer' distances.
-        item.Score = MinDistance;
+    }
+    for (FEnvQueryItem& Item : Items)
+    {
+        Item.Score = Item.Score / MaxDistance;
     }
 }

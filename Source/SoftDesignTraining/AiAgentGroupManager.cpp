@@ -77,7 +77,7 @@ bool AiAgentGroupManager::IsNearestToPlayer(ASDTBaseAIController* agentControlle
         return false;
 
     float DistanceToPlayer = (agentController->GetPawn()->GetActorLocation() - playerCharacter->GetActorLocation()).SizeSquared();
-    DrawDebugString(world, FVector(0.f, 0.f, 10.f), FString::SanitizeFloat(DistanceToPlayer), agentController->GetPawn(), FColor::Red, 5.f, false);
+    //DrawDebugString(world, FVector(0.f, 0.f, 10.f), FString::SanitizeFloat(DistanceToPlayer), agentController->GetPawn(), FColor::Red, 5.f, false);
 
     for (auto& agent : m_registeredAgents) {
         if ((agent->GetPawn()->GetActorLocation() - playerCharacter->GetActorLocation()).SizeSquared() < DistanceToPlayer + 100) {
