@@ -16,7 +16,7 @@ EBTNodeResult::Type UBTTask_ShouldChangeTarget::ExecuteTask(UBehaviorTreeCompone
     if (ASDTAIController* aiController = Cast<ASDTAIController>(OwnerComp.GetAIOwner()))
     {
         if (aiController->AtJumpSegment) {
-            DrawDebugSphere(GetWorld(), aiController->GetPawn()->GetActorLocation() + FVector(0.f, 0.f, 100.f), 15.0f, 32, FColor::Green);
+            //DrawDebugSphere(GetWorld(), aiController->GetPawn()->GetActorLocation() + FVector(0.f, 0.f, 100.f), 15.0f, 32, FColor::Green);
             return EBTNodeResult::Failed;
         }
         if (OwnerComp.GetBlackboardComponent()->GetValue<UBlackboardKeyType_Bool>(aiController->GetTargetSeenKeyID()))
@@ -29,7 +29,7 @@ EBTNodeResult::Type UBTTask_ShouldChangeTarget::ExecuteTask(UBehaviorTreeCompone
         if (OwnerComp.GetBlackboardComponent()->GetValue<UBlackboardKeyType_Bool>(aiController->GetIsInGroupKeyID())) {
             return EBTNodeResult::Succeeded;
         }
-        DrawDebugSphere(GetWorld(), aiController->GetPawn()->GetActorLocation() + FVector(0.f, 0.f, 100.f), 15.0f, 32, FColor::Red);
+        //DrawDebugSphere(GetWorld(), aiController->GetPawn()->GetActorLocation() + FVector(0.f, 0.f, 100.f), 15.0f, 32, FColor::Red);
     }
 
     return EBTNodeResult::Failed;

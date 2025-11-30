@@ -1,8 +1,9 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "AgentsManager.h"
 #include "AiAgentGroupManager.h"
+#include "SoftDesignTrainingCharacter.h"
 #include "SDTUtils.h"
 
 // Sets default values
@@ -50,12 +51,19 @@ void AAgentsManager::Tick(float DeltaTime)
 		if (!agent->IsInGroup || !AgentGroupManager->m_SeenThisTick) {
 			agent->DetectPlayer(DeltaTime);
 		}
+		agent->GroupSphere();
 		m_LastUpdatedIndex = (m_LastUpdatedIndex + 1) % m_Agents.Num();
-	 } while ((FPlatformTime::Seconds() - currentTime) * 1000 < m_Budget && stopIdx != m_LastUpdatedIndex);
+		SetTickRate(agent);
+		agent->SetShouldExecute(true);
+	 } while ((FPlatformTime::Seconds() - currentTime) * 1000.0f < m_Budget && stopIdx != m_LastUpdatedIndex);
+
+	 
 
 	if (!AgentGroupManager->m_SeenThisTick && AgentGroupManager->GetLKPFromGroup().GetLKPState() == TargetLKPInfo::ELKPState::LKPState_Invalid && !AgentGroupManager->IsGroupEmpty()) {
 		AgentGroupManager->Disband();
 	}
+
+
 
 	AgentGroupManager->SetTargets(GetWorld());
 }
@@ -64,4 +72,55 @@ void AAgentsManager::RegisterAIAgent(ASDTAIController* aiAgent)
 {
 	m_Agents.Add(aiAgent);
 }
+
+void AAgentsManager::SetTickRate(ASDTAIController* aiAgent)
+{
+	bool bVisible = aiAgent->GetPawn()->WasRecentlyRendered();
+
+	ASoftDesignTrainingCharacter* Pawn = Cast<ASoftDesignTrainingCharacter>(aiAgent->GetPawn());
+
+
+
+	if (Pawn)
+	{
+
+		const auto& MeshComponent = *Pawn->GetMesh();
+
+		const float& LastRenderTimeOnScreen = MeshComponent.GetLastRenderTimeOnScreen();
+
+		float TimeSinceRendered = GetWorld()->GetTime().GetWorldTimeSeconds() - LastRenderTimeOnScreen;
+
+		if (LastRenderTimeOnScreen < 0.0f || TimeSinceRendered >= 0.5f)
+		{
+			bVisible = false || aiAgent->AtJumpSegment;
+
+		}
+
+		Pawn->SetActorTickInterval(bVisible ? 0.f : 0.2f);
+
+
+
+		// Anim
+		if (auto Mesh = Pawn->FindComponentByClass<USkeletalMeshComponent>()) {
+			Mesh->SetComponentTickInterval(bVisible ? 0.f : 0.05f);
+		}
+			
+		// Physics
+		if (auto Prim = Pawn->FindComponentByClass<UPrimitiveComponent>()) {
+			Prim->SetComponentTickInterval(bVisible ? 0.f : 0.05f);
+		}
+
+		// Behavior Tree
+		if (auto Brain = aiAgent->GetBrainComponent()){
+			Brain->SetComponentTickInterval(bVisible ? 0.f : 1.f);
+		}
+
+		if (auto BTComp = aiAgent->FindComponentByClass<UBehaviorTreeComponent>()) {
+			BTComp->SetComponentTickInterval(bVisible ? 0.f : 1.f);
+
+		}
+	}
+
+}
+
 

@@ -92,6 +92,8 @@ public:
     void MoveToPlayer();
     void MoveToLKP();
     void DetectPlayer(float deltaTime);
+    void GroupSphere();
+    void SetShouldExecute(bool valueToSet);
     PlayerInteractionBehavior m_PlayerInteractionBehavior;
 
 private:

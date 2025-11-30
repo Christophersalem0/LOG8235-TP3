@@ -19,6 +19,20 @@ ASDTAIController::ASDTAIController(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer.SetDefaultSubobjectClass<USDTPathFollowingComponent>(TEXT("PathFollowingComponent")))
 {
     m_PlayerInteractionBehavior = PlayerInteractionBehavior_Collect;
+    /*PrimaryActorTick.bCanEverTick = false;
+    PrimaryActorTick.SetTickFunctionEnable(false);*/
+
+    //TArray<UActorComponent*> Components;
+    //GetComponents(Components);
+
+
+    //for (UActorComponent* Component : Components)
+    //{
+    //    if (Component && Component->PrimaryComponentTick.bCanEverTick)
+    //    {
+    //        Component->PrimaryComponentTick.SetTickFunctionEnable(false);
+    //    }
+    //}
 }
 
 void ASDTAIController::BeginPlay()
@@ -38,6 +52,7 @@ void ASDTAIController::BeginPlay()
             aiController->StopBehaviorTree(this);
         }
     }
+
 }
 
 void ASDTAIController::Tick(float deltaTime)
@@ -48,9 +63,23 @@ void ASDTAIController::Tick(float deltaTime)
     else {
     }*/
     Super::Tick(deltaTime);
+
+  
+
+}
+
+void  ASDTAIController::GroupSphere() {
     if (IsInGroup)
         DrawDebugSphere(GetWorld(), GetPawn()->GetActorLocation() + FVector(0.f, 0.f, 100.f), 15.0f, 32, FColor::Purple);
 }
+
+void ASDTAIController::SetShouldExecute(bool valueToSet)
+{
+    m_blackboardComponent->SetValue<UBlackboardKeyType_Bool>(GetShouldExecute(), valueToSet);
+}
+
+
+
 
 void ASDTAIController::UpdateBTLogic(float deltaTime)
 {
@@ -83,9 +112,9 @@ void ASDTAIController::DetectPlayer(float deltaTime) {
 
     TArray<FHitResult> allDetectionHits;
     GetWorld()->SweepMultiByObjectType(allDetectionHits, detectionStartLocation, detectionEndLocation, FQuat::Identity, detectionTraceObjectTypes, FCollisionShape::MakeSphere(m_DetectionCapsuleRadius));
-    if (m_DrawDebug) {
+    /*if (m_DrawDebug) {
         DrawDebugCapsule(GetWorld(), detectionStartLocation + m_DetectionCapsuleHalfLength * selfPawn->GetActorForwardVector(), m_DetectionCapsuleHalfLength, m_DetectionCapsuleRadius, selfPawn->GetActorQuat() * selfPawn->GetActorUpVector().ToOrientationQuat(), FColor::Blue);
-    }
+    }*/
 
     FHitResult detectionHit;
     GetHightestPriorityDetectionHit(allDetectionHits, detectionHit);
@@ -209,7 +238,7 @@ void ASDTAIController::MoveToLKP()
     AiAgentGroupManager* Group = AiAgentGroupManager::GetInstance();
     if (!Group || Group->GetLKPFromGroup().GetLKPState() == TargetLKPInfo::ELKPState::LKPState_Invalid)
         return;
-    DrawDebugSphere(GetWorld(), Group->GetLKPFromGroup().GetLKPPos() + FVector(0.f, 0.f, 100.f), 15.0f, 32, FColor::Yellow);
+    //DrawDebugSphere(GetWorld(), Group->GetLKPFromGroup().GetLKPPos() + FVector(0.f, 0.f, 100.f), 15.0f, 32, FColor::Yellow);
     bool shouldGoTotarget = (GetPawn()->GetActorLocation() - Group->GetLKPFromGroup().GetLKPPos()).SizeSquared() > (GetPawn()->GetActorLocation() - target).SizeSquared() && (GetPawn()->GetActorLocation() - Group->GetLKPFromGroup().GetLKPPos()).SizeSquared() > 40000;
     
     
@@ -218,7 +247,7 @@ void ASDTAIController::MoveToLKP()
         ACharacter* playerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
         if (!playerCharacter)
             return;
-        DrawDebugSphere(GetWorld(), AccessibleLocation + FVector(0.f, 0.f, 100.f), 15.0f, 32, FColor::Blue);
+        //DrawDebugSphere(GetWorld(), AccessibleLocation + FVector(0.f, 0.f, 100.f), 15.0f, 32, FColor::Blue);
         MoveToLocation(shouldGoTotarget ? AccessibleLocation : playerCharacter->GetActorLocation(), 0.5f, false, true, true, false, NULL, false);
         OnMoveToTarget();
     }
@@ -256,7 +285,7 @@ void ASDTAIController::PlayerInteractionLoSUpdate()
         {
             GetWorld()->GetTimerManager().ClearTimer(m_PlayerInteractionNoLosTimer);
             m_PlayerInteractionNoLosTimer.Invalidate();
-            DrawDebugString(GetWorld(), FVector(0.f, 0.f, 10.f), "Got LoS", GetPawn(), FColor::Red, 5.f, false);
+            //DrawDebugString(GetWorld(), FVector(0.f, 0.f, 10.f), "Got LoS", GetPawn(), FColor::Red, 5.f, false);
         }
     }
     else
@@ -264,7 +293,7 @@ void ASDTAIController::PlayerInteractionLoSUpdate()
         if (!GetWorld()->GetTimerManager().IsTimerActive(m_PlayerInteractionNoLosTimer))
         {
             GetWorld()->GetTimerManager().SetTimer(m_PlayerInteractionNoLosTimer, this, &ASDTAIController::OnPlayerInteractionNoLosDone, 3.f, false);
-            DrawDebugString(GetWorld(), FVector(0.f, 0.f, 10.f), "Lost LoS", GetPawn(), FColor::Red, 5.f, false);
+            //DrawDebugString(GetWorld(), FVector(0.f, 0.f, 10.f), "Lost LoS", GetPawn(), FColor::Red, 5.f, false);
         }
     }
     
@@ -273,7 +302,7 @@ void ASDTAIController::PlayerInteractionLoSUpdate()
 void ASDTAIController::OnPlayerInteractionNoLosDone()
 {
     GetWorld()->GetTimerManager().ClearTimer(m_PlayerInteractionNoLosTimer);
-    DrawDebugString(GetWorld(), FVector(0.f, 0.f, 10.f), "TIMER DONE", GetPawn(), FColor::Red, 5.f, false);
+    //DrawDebugString(GetWorld(), FVector(0.f, 0.f, 10.f), "TIMER DONE", GetPawn(), FColor::Red, 5.f, false);
     CanSeePlayer = false;
     if (!AtJumpSegment)
     {
@@ -313,7 +342,7 @@ FVector3d ASDTAIController::MoveToBestFleeLocation(bool shouldMove)
                 bestFleeLocation = fleeLocation;
             }
 
-            DrawDebugString(GetWorld(), FVector(0.f, 0.f, 10.f), FString::SanitizeFloat(locationScore), fleeLocation, FColor::Red, 5.f, false);
+            //DrawDebugString(GetWorld(), FVector(0.f, 0.f, 10.f), FString::SanitizeFloat(locationScore), fleeLocation, FColor::Red, 5.f, false);
         }
     }
 

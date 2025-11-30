@@ -29,6 +29,8 @@ public:
 	uint16                   GetNextPatrolDestinationKeyID() const { return m_nextPatrolDestinationBBKeyID; }
 	uint16                   GetCurrentPatrolDestinationKeyID() const { return m_currentPatrolDestinationBBKeyID; }
 	uint16                   GetIsInGroupKeyID() const { return m_isInGroupKeyID; }
+	uint16					 GetShouldExecute() const { return m_ShouldExecute; }
+
 
 
 	void                    StartBehaviorTree(AAIController* aiBaseCharacter);
@@ -52,4 +54,5 @@ private:
 	uint16  m_isTargetSeenBBKeyID;
 	uint16  m_nextPatrolDestinationBBKeyID;
 	uint16  m_currentPatrolDestinationBBKeyID;
+	uint16  m_ShouldExecute;
 };

@@ -16,6 +16,7 @@ public:
 	// Sets default values for this actor's properties
 	AAgentsManager();
 	void RegisterAIAgent(ASDTAIController* aiAgent);
+	void SetTickRate(ASDTAIController* aiAgent);
 
 protected:
 	// Called when the game starts or when spawned

@@ -28,7 +28,7 @@ void AiAgentGroupManager::Destroy()
 
 void AiAgentGroupManager::Disband()
 {
-    UE_LOG(LogTemp, Warning, TEXT("DISBAND"));
+    //UE_LOG(LogTemp, Warning, TEXT("DISBAND"));
     m_CurrentTargetLKPInfo.SetLKPState(TargetLKPInfo::ELKPState::LKPState_Invalid);
     for (auto agent : m_registeredAgents) {
         agent->leaveGroup();
@@ -69,7 +69,7 @@ void AiAgentGroupManager::SetTargets(UWorld* world) {
     for (int i = 0; i < m_registeredAgents.Num(); i++) {
         int index = i % m_nbOfGroups;
         FVector target = m_CurrentTargetLKPInfo.GetLKPPos() + m_circleLKP[index] * (m_registeredAgents[i]->GetPawn()->GetActorLocation() - playerCharacter->GetActorLocation()).Size() * FMath::Min(.9, .5 * (float(i) / float(m_nbOfGroups) + 1));
-        DrawDebugSphere(world, target + FVector(0.f, 0.f, 100.f), 15.0f, 32, FColor::Blue);
+        //DrawDebugSphere(world, target + FVector(0.f, 0.f, 100.f), 15.0f, 32, FColor::Blue);
         m_registeredAgents[i]->target = target;
     }
 }

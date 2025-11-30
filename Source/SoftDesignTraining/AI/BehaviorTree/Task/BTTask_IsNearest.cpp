@@ -11,7 +11,7 @@ EBTNodeResult::Type UBTTask_IsNearest::ExecuteTask(UBehaviorTreeComponent& Owner
     {
         if (AiAgentGroupManager::GetInstance()->IsNearestToPlayer(aiController))
         {
-            DrawDebugString(GetWorld(), FVector(0.f, 0.f, 10.f), "JLE RUSH", aiController->GetPawn(), FColor::Red, 5.f, false);
+            //DrawDebugString(GetWorld(), FVector(0.f, 0.f, 10.f), "JLE RUSH", aiController->GetPawn(), FColor::Red, 5.f, false);
 
             return EBTNodeResult::Succeeded;
         }
