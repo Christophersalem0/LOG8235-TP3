@@ -46,6 +46,7 @@ void AAgentsManager::Tick(float DeltaTime)
 		AgentGroupManager->Disband();
 	}
 
+	int agentLooped = 0;
 	 do {
 		ASDTAIController* agent = m_Agents[m_LastUpdatedIndex];
 		if (!agent->IsInGroup || !AgentGroupManager->m_SeenThisTick) {
@@ -55,15 +56,14 @@ void AAgentsManager::Tick(float DeltaTime)
 		m_LastUpdatedIndex = (m_LastUpdatedIndex + 1) % m_Agents.Num();
 		SetTickRate(agent);
 		agent->SetShouldExecute(true);
-	 } while ((FPlatformTime::Seconds() - currentTime) * 1000.0f < m_Budget && stopIdx != m_LastUpdatedIndex);
+		agentLooped++;
+	 } while ((FPlatformTime::Seconds() - currentTime + 0.0001f * agentLooped) * 1000.0f < m_Budget && stopIdx != m_LastUpdatedIndex);
 
 	 
 
 	if (!AgentGroupManager->m_SeenThisTick && AgentGroupManager->GetLKPFromGroup().GetLKPState() == TargetLKPInfo::ELKPState::LKPState_Invalid && !AgentGroupManager->IsGroupEmpty()) {
 		AgentGroupManager->Disband();
 	}
-
-
 
 	AgentGroupManager->SetTargets(GetWorld());
 }
